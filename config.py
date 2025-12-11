@@ -1,8 +1,5 @@
 from google import generativeai as genai
 
-# ----------------------------------------
-#  HARD-CODED API KEY (works instantly)
-# ----------------------------------------
 API_KEY = ""
 
 if not API_KEY or API_KEY.strip() == "":
@@ -10,4 +7,5 @@ if not API_KEY or API_KEY.strip() == "":
 
 # Configure Gemini
 genai.configure(api_key=API_KEY)
+
 
