@@ -1,8 +1,9 @@
 import json
 from typing import List
 import google.generativeai as genai
+import config
 from rag_pipeline import retrieve_docs
-from config import API_KEY  # ensures config runs
+
 
 MODEL_NAME = "models/gemini-2.5-flash"
   
@@ -61,7 +62,7 @@ TASK:
 
 def optimise_plan(user_plan: str):
 
-    # FIX: retrieved_docs is a flat list, not nested
+    # retrieved_docs is already a flat list
     retrieved_docs = retrieve_docs(user_plan, k=3)
 
     prompt = build_prompt(user_plan, retrieved_docs)
@@ -71,16 +72,19 @@ def optimise_plan(user_plan: str):
 
     raw_text = response.text
 
-    # Try parse JSON
+    # Try to parse strict JSON
     try:
         return json.loads(raw_text)
-    except:
-        s = raw_text.find("{")
-        e = raw_text.rfind("}")
-        if s != -1 and e != -1:
-            try:
-                return json.loads(raw_text[s:e+1])
-            except:
-                return {"raw_response": raw_text}
 
-    return {"raw_response": raw_text}
+    except Exception:
+        # Fallback: attempt to extract JSON block
+        start = raw_text.find("{")
+        end = raw_text.rfind("}")
+
+        if start != -1 and end != -1 and start < end:
+            try:
+                return json.loads(raw_text[start:end + 1])
+            except Exception:
+                pass
+
+        return {"raw_response": raw_text}
